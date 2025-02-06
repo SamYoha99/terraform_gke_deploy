@@ -12,8 +12,6 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    # env:
-    #   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     environment: production
 
     
@@ -22,13 +20,6 @@ jobs:
         shell: bash
 
     steps:
-    - uses: act10ns/slack@v2
-      with:
-        status: Started Deployment
-        channel: '#gke-kubernetes-alert'
-        message: Started GKE kubernetes Deployment to Google Cloud...
-      if: always()
-
     - name: Checkout
       uses: actions/checkout@v4
 
