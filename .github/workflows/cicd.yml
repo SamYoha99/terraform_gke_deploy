@@ -10,7 +10,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform'
+   - name: 'Terraform'
     runs-on: ubuntu-latest
     environment: production
 
@@ -38,17 +38,17 @@ jobs:
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-    - name: Terraform Init
-     run: terraform init
+    # - name: Terraform Init
+    #  run: terraform init
 
-    - name: Terraform Plan
-     run: terraform plan -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
+    # - name: Terraform Plan
+    #  run: terraform plan -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
    #  Note if you want to apply you uncomment the apply block but if you want to destroy uncomment the destroy block
    #=================================================================================================================
    
-   - name: Terraform Apply
-     run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
+  #  - name: Terraform Apply
+  #    run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
     #- name: Terraform Destroy
      # run: terraform destroy -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
@@ -120,6 +120,6 @@ jobs:
    # - uses: act10ns/slack@v1
      # with:
          # status: ${{ job.status }}
-         # steps: ${{ toJson(steps) }}
+        #  steps: ${{ toJson(steps) }}
          # channel: '#gke-kubernetes-alert'
-      if: always()
+      # if: always()
