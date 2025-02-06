@@ -4,7 +4,7 @@ name: 'Terraform_Deploy GKE to GCP'
 # trigger points
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
 
 
