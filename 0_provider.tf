@@ -31,6 +31,6 @@ provider "google" {
 #  Enable some api
 # ===================
 
-# compute engine api 1
+# compute engine api 12
 # Kubernetes Engine api 
 # Resource manager api
