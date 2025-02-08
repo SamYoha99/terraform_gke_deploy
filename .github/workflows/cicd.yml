@@ -1,12 +1,10 @@
 name: 'Terraform_Deploy GKE to GCP'
 
-
 # trigger points
 on:
   push:
     branches: [ "master" ]
   pull_request:
-
 
 jobs:
   terraform:
@@ -15,7 +13,6 @@ jobs:
     environment:
       name: production
 
-    
     defaults:
       run:
         shell: bash
@@ -23,7 +20,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
 
     - name: Authenticate to GCP
       env:
@@ -33,30 +29,28 @@ jobs:
         gcloud auth activate-service-account --key-file=gcp-key.json
         gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
-    
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform Init
-     run: terraform init
+      run: terraform init
 
     - name: Terraform Plan
-     run: terraform plan -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
+      run: terraform plan -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
-   #  Note if you want to apply you uncomment the apply block but if you want to destroy uncomment the destroy block
-   #=================================================================================================================
+    # Note if you want to apply you uncomment the apply block but if you want to destroy uncomment the destroy block
+    #=================================================================================================================
    
-  #  - name: Terraform Apply
-  #    run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
+    # - name: Terraform Apply
+    #   run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
-    #- name: Terraform Destroy
-     # run: terraform destroy -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
+    # - name: Terraform Destroy
+    #   run: terraform destroy -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
-
-   - name: Install gke-gcloud-auth-plugin
-     run: |
+    - name: Install gke-gcloud-auth-plugin
+      run: |
         sudo apt-get update 
         sudo apt-get install apt-transport-https ca-certificates gnupg curl -y
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
@@ -64,14 +58,13 @@ jobs:
         sudo apt-get update && sudo apt-get install google-cloud-cli -y
         sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin -y
 
-
     - name: Configure kubectl for GKE
       run: |
-         gcloud container clusters get-credentials dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud container clusters get-credentials dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
 
     # - name: Create Datadog Namespace (if it doesn't exist)
     #   run: kubectl create namespace datadog || true # The || true prevents the workflow from failing if the namespace already exists  
-      
+
     # - name: Deploy Datadog Secret
     #   run: |
     #       kubectl apply -f datadog-secret.yaml  # Replace with your Datadog secret file path
@@ -85,22 +78,21 @@ jobs:
     # - name: Deploy Datadog Cluster Agent
     #   run: kubectl apply -f datadog-cluster-agent.yaml  
 
-        - name: Deploy CertManager 
-     run: |
-      kubectl create namespace cert-manager
-      kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-      kubectl get pod -n cert-manager
-      kubectl create secret generic letsencrypt-prod -n cert-manager
-      kubectl apply -f clusterissuer.yaml
+    - name: Deploy CertManager 
+      run: |
+        kubectl create namespace cert-manager || true
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+        kubectl get pod -n cert-manager
+        kubectl create secret generic letsencrypt-prod -n cert-manager
+        kubectl apply -f clusterissuer.yaml
     
-    # - name: Deploy CertManager
+    # - name: Deploy CertManager (Alternative way)
     #   run: |
     #    kubectl create namespace cert-manager || true
     #    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
     #    kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
     #    kubectl create secret generic letsencrypt-prod -n cert-manager
     #    kubectl apply -f clusterissuer.yaml
-
 
     - name: Install Helm Before Deploying with Helm
       run: |
@@ -110,17 +102,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install helm -y
 
-
     - name: Deploy Nginx-Controller
       run: |
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update
-          kubectl create namespace ingress-nginx || true
-          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx
+        helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+        helm repo update
+        kubectl create namespace ingress-nginx || true
+        helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx
         
-   # - uses: act10ns/slack@v1
-     # with:
-         # status: ${{ job.status }}
-        #  steps: ${{ toJson(steps) }}
-         # channel: '#gke-kubernetes-alert'
-      # if: always()
+    # - uses: act10ns/slack@v1
+    #   with:
+    #     status: ${{ job.status }}
+    #     steps: ${{ toJson(steps) }}
+    #     channel: '#gke-kubernetes-alert'
+    #   if: always()
