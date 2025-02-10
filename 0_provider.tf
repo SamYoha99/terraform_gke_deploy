@@ -29,7 +29,7 @@ provider "google" {
 
 
 #  Enable some api
-# ===================
+# ===================]
 
 # compute engine api 
 # Kubernetes Engine api 
