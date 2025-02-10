@@ -40,15 +40,11 @@ jobs:
     - name: Terraform Plan
       run: terraform plan -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
-    # Note if you want to apply you uncomment the apply block but if you want to destroy uncomment the destroy block
-    #=================================================================================================================
-   
+    # Optional Apply block
     # - name: Terraform Apply
     #   run: terraform apply -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
 
-    - name: Terraform Destroy
-      run: terraform destroy -auto-approve -input=false -var="project_id=${{ secrets.GCP_PROJECT_ID }}" -var="region=us-central1"
-
+    # Install the GKE Auth plugin
     - name: Install gke-gcloud-auth-plugin
       run: |
         sudo apt-get update 
@@ -58,26 +54,26 @@ jobs:
         sudo apt-get update && sudo apt-get install google-cloud-cli -y
         sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin -y
 
+    # Create GKE Cluster if it doesn't exist already
+    - name: Create GKE Cluster if it doesn't exist
+      run: |
+        # Check if the cluster exists first
+        if ! gcloud container clusters describe dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}; then
+          echo "Cluster does not exist, creating now..."
+          gcloud container clusters create dev-cluster \
+            --zone us-central1-a \
+            --num-nodes 1 \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+        else
+          echo "Cluster already exists"
+        fi
+
+    # Configure kubectl for the GKE cluster
     - name: Configure kubectl for GKE
       run: |
         gcloud container clusters get-credentials dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
-
-    # - name: Create Datadog Namespace (if it doesn't exist)
-    #   run: kubectl create namespace datadog || true # The || true prevents the workflow from failing if the namespace already exists  
-
-    # - name: Deploy Datadog Secret
-    #   run: |
-    #       kubectl apply -f datadog-secret.yaml  # Replace with your Datadog secret file path
-
-    # - name: Deploy Datadog Service Account
-    #   run: kubectl apply -f datadog-serviceaccount.yaml  # Replace with your Datadog service account file path
-
-    # - name: Deploy Datadog Agent DaemonSet
-    #   run: kubectl apply -f datadog-agent.yaml  # Replace with your Datadog agent DaemonSet file path
-    
-    # - name: Deploy Datadog Cluster Agent
-    #   run: kubectl apply -f datadog-cluster-agent.yaml  
-
+        
+    # Deploy CertManager 
     - name: Deploy CertManager 
       run: |
         kubectl create namespace cert-manager || true
@@ -85,15 +81,8 @@ jobs:
         kubectl get pod -n cert-manager
         kubectl create secret generic letsencrypt-prod -n cert-manager
         kubectl apply -f clusterissuer.yaml
-    
-    # - name: Deploy CertManager (Alternative way)
-    #   run: |
-    #    kubectl create namespace cert-manager || true
-    #    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-    #    kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
-    #    kubectl create secret generic letsencrypt-prod -n cert-manager
-    #    kubectl apply -f clusterissuer.yaml
 
+    # Install Helm Before Deploying with Helm
     - name: Install Helm Before Deploying with Helm
       run: |
         curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
@@ -108,7 +97,8 @@ jobs:
         helm repo update
         kubectl create namespace ingress-nginx || true
         helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx -n ingress-nginx
-        
+
+    # Optional Slack integration for notifications (if you want)
     # - uses: act10ns/slack@v1
     #   with:
     #     status: ${{ job.status }}
