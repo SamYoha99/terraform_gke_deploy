@@ -78,21 +78,21 @@ jobs:
     # - name: Deploy Datadog Cluster Agent
     #   run: kubectl apply -f datadog-cluster-agent.yaml  
 
-    - name: Deploy CertManager 
-      run: |
-        kubectl create namespace cert-manager || true
-        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-        kubectl get pod -n cert-manager
-        kubectl create secret generic letsencrypt-prod -n cert-manager
-        kubectl apply -f clusterissuer.yaml
-    
-    # - name: Deploy CertManager (Alternative way)
+    # - name: Deploy CertManager 
     #   run: |
-    #    kubectl create namespace cert-manager || true
-    #    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-    #    kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
-    #    kubectl create secret generic letsencrypt-prod -n cert-manager
-    #    kubectl apply -f clusterissuer.yaml
+    #     kubectl create namespace cert-manager || true
+    #     kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+    #     kubectl get pod -n cert-manager
+    #     kubectl create secret generic letsencrypt-prod -n cert-manager
+    #     kubectl apply -f clusterissuer.yaml
+    
+    - name: Deploy CertManager (Alternative way)
+      run: |
+       kubectl create namespace cert-manager || true
+       kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+       kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
+       kubectl create secret generic letsencrypt-prod -n cert-manager
+       kubectl apply -f clusterissuer.yaml
 
     - name: Install Helm Before Deploying with Helm
       run: |
