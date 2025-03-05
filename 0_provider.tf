@@ -19,7 +19,7 @@ provider "google" {
 
 
 
-# 11) Create A service account
+# 1) Create A service account
 # 2) permission needed
 # 1) Compute Admin
 # 2) Kubernetes Engine Admin
