@@ -62,37 +62,15 @@ jobs:
       run: |
         gcloud container clusters get-credentials dev-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
 
-    # - name: Create Datadog Namespace (if it doesn't exist)
-    #   run: kubectl create namespace datadog || true # The || true prevents the workflow from failing if the namespace already exists  
-
-    # - name: Deploy Datadog Secret
-    #   run: |
-    #       kubectl apply -f datadog-secret.yaml  # Replace with your Datadog secret file path
-
-    # - name: Deploy Datadog Service Account
-    #   run: kubectl apply -f datadog-serviceaccount.yaml  # Replace with your Datadog service account file path
-
-    # - name: Deploy Datadog Agent DaemonSet
-    #   run: kubectl apply -f datadog-agent.yaml  # Replace with your Datadog agent DaemonSet file path
-    
-    # - name: Deploy Datadog Cluster Agent
-    #   run: kubectl apply -f datadog-cluster-agent.yaml  
-
-    # - name: Deploy CertManager 
-    #   run: |
-    #     kubectl create namespace cert-manager || true
-    #     kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-    #     kubectl get pod -n cert-manager
-    #     kubectl create secret generic letsencrypt-prod -n cert-manager
-    #     kubectl apply -f clusterissuer.yaml
-    
-    - name: Deploy CertManager (Alternative way)
+    # Deploy CertManager (Alternative way)
+    - name: Deploy CertManager
       run: |
-       kubectl create namespace cert-manager || true
-       kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-       kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
-       kubectl create secret generic letsencrypt-prod -n cert-manager
-       kubectl apply -f clusterissuer.yaml
+        kubectl create namespace cert-manager || true
+        kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+        # Wait for all cert-manager pods to be ready before proceeding
+        kubectl wait pod -n cert-manager --all --for=condition=Ready --timeout=180s
+        kubectl create secret generic letsencrypt-prod -n cert-manager
+        kubectl apply -f clusterissuer.yaml
 
     - name: Install Helm Before Deploying with Helm
       run: |
